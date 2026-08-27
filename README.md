@@ -13,3 +13,5 @@ This has 3 task, starting with map and filter and then last task is more complex
 
 Skill 3 - interfaces.ts 
 
+This task demonstrates how to use TypeScript interfaces, arrays, and typed functions to work with movie data. It includes a function that filters movies by genre and logs the matching movie titles.
+
