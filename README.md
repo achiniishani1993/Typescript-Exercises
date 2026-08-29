@@ -15,3 +15,6 @@ Skill 3 - interfaces.ts
 
 This task demonstrates how to use TypeScript interfaces, arrays, and typed functions to work with movie data. It includes a function that filters movies by genre and logs the matching movie titles.
 
+Skill 4- combine.ts 
+
+This example demonstrates how to use TypeScript interfaces to define the structure and types of objects, including optional and nested properties. It also shows how to create a typed array of movies and a typed function that filters movies by genre.

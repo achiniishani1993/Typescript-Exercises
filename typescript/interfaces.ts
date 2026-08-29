@@ -68,8 +68,8 @@ const movies: Movie[] = [
 ];
 
 // Write a function
-function getMoviesByGenre(movies: Movie[], genre: string): Movie[] {
-    return movies.filter(m => m.genres.includes(genre));
+function getMoviesByGenre(movies: Movie[], genres: string): Movie[] {
+    return movies.filter(m => m.genres.includes(genres));
 };
 
 const matchMovies = getMoviesByGenre(movies, "drama");
