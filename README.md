@@ -15,3 +15,8 @@ Practice typescript
 * **Favorite Car:** Created a Car interface and an arrow function printCar to display the car brand and year.
 * **Concepts Practiced:** Interfaces, type aliases, intersection types (&), arrow functions, return types, and console.log().
 
+# Skill 3: Enums
+* **Color Picker:** Created a Color enum with Red, Green, and Blue, and an arrow function showColor to display the selected color.
+* **Pizza Order:** Created a PizzaSize enum with Small, Medium, and Large, and an arrow function orderPizza to display the selected pizza size.
+* **Role-Based Access:** Created a Role enum with Admin, User, and Guest, and an arrow function printRole using a switch statement to display the appropriate access message.
+Concepts Practiced: Enums, arrow functions, parameter types, return types, switch statements, template literals, and console.log().
