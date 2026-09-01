@@ -20,3 +20,5 @@ Practice typescript
 * **Pizza Order:** Created a PizzaSize enum with Small, Medium, and Large, and an arrow function orderPizza to display the selected pizza size.
 * **Role-Based Access:** Created a Role enum with Admin, User, and Guest, and an arrow function printRole using a switch statement to display the appropriate access message.
 Concepts Practiced: Enums, arrow functions, parameter types, return types, switch statements, template literals, and console.log().
+
+# Skill 4: Generics ( <T> means reusable placeholder)
