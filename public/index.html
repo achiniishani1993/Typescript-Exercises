@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Library</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    section {
+      background: white;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input,
+    select,
+    button {
+      padding: 9px;
+      margin: 4px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      cursor: pointer;
+      background: #333;
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    .danger {
+      background: #c0392b;
+    }
+
+    .success {
+      background: #27ae60;
+    }
+
+    .secondary {
+      background: #555;
+    }
+
+    .book {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .book-info {
+      flex: 1;
+    }
+
+    .book-actions {
+      white-space: nowrap;
+    }
+
+    .error {
+      color: #c0392b;
+      background: #fdecea;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .success-message {
+      color: #1e8449;
+      background: #eafaf1;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .stat {
+      display: inline-block;
+      padding: 15px 25px;
+      margin: 5px;
+      background: #f0f0f0;
+      border-radius: 8px;
+    }
+
+    .author,
+    .loan {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 0;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: inline-block;
+      min-width: 130px;
+    }
+
+    #editFormContainer {
+      display: none;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>My Library</h1>
+  <p>Books, authors, members and loans</p>
+</header>
+
+<main>
+
+
+  <div id="errorMessage" class="error"></div>
+  <div id="successMessage" class="success-message"></div>
+
+
+<!-- Books -->
+
+  <section>
+    <h2>Books</h2>
+
+    <div class="form-row">
+      <input
+        type="text"
+        id="search"
+        placeholder="Search by title..."
+      >
+
+      <input
+        type="text"
+        id="genreFilter"
+        placeholder="Genre..."
+      >
+
+      <select id="sort">
+        <option value="">Sort by...</option>
+        <option value="title">Title</option>
+        <option value="published_year">Published year</option>
+        <option value="genre">Genre</option>
+      </select>
+
+      <button onclick="loadBooks(1)">
+        Search
+      </button>
+
+      <button class="secondary" onclick="clearFilters()">
+        Clear
+      </button>
+    </div>
+
+    <div id="bookList">
+      Loading books...
+    </div>
+
+    <div class="pagination">
+      <button onclick="previousPage()">← Previous</button>
+
+      <span id="pageInfo">Page 1</span>
+
+      <button onclick="nextPage()">Next →</button>
+    </div>
+  </section>
+
+
+  <!-- add book -->
+
+  <section>
+    <h2>Add Book</h2>
+
+    <form id="bookForm">
+
+      <div class="form-row">
+        <label for="bookTitle">Title:</label>
+        <input
+          type="text"
+          id="bookTitle"
+          required
+        >
+      </div>
+
+      <div class="form-row">
+        <label for="bookGenre">Genre:</label>
+        <input
+          type="text"
+          id="bookGenre"
+        >
+      </div>
+
+      <div class="form-row">
+        <label for="bookYear">Published year:</label>
+        <input
+          type="number"
+          id="bookYear"
+        >
+      </div>
+
+      <div class="form-row">
+        <label for="bookAuthor">Author ID:</label>
+        <input
+          type="number"
+          id="bookAuthor"
+          placeholder="Optional"
+        >
+      </div>
+
+      <button class="success" type="submit">
+        Add Book
+      </button>
+
+    </form>
+  </section>
+
+
+ <!-- edit book -->
+
+  <section id="editFormContainer">
+
+    <h2>Edit Book</h2>
+
+    <form id="editBookForm">
+
+      <input type="hidden" id="editBookId">
+
+      <div class="form-row">
+        <label>Title:</label>
+        <input type="text" id="editTitle">
+      </div>
+
+      <div class="form-row">
+        <label>Genre:</label>
+        <input type="text" id="editGenre">
+      </div>
+
+      <div class="form-row">
+        <label>Published year:</label>
+        <input type="number" id="editYear">
+      </div>
+
+      <button class="success" type="submit">
+        Save Changes
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        onclick="closeEditForm()"
+      >
+        Cancel
+      </button>
+
+    </form>
+  </section>
+
+
+  <!-- authors -->
+
+  <section>
+
+    <h2>Authors</h2>
+
+    <form id="authorForm">
+
+      <input
+        type="text"
+        id="authorName"
+        placeholder="Author name"
+        required
+      >
+
+      <button class="success" type="submit">
+        Add Author
+      </button>
+
+    </form>
+
+    <button onclick="loadAuthors()">
+      Refresh Authors
+    </button>
+
+    <div id="authorList">
+      Click "Refresh Authors" to load authors.
+    </div>
+
+    <div id="authorBooks"></div>
+
+  </section>
+
+
+  <!-- members -->
+
+  <section>
+
+    <h2>Members</h2>
+
+    <form id="memberForm">
+
+      <input
+        type="text"
+        id="memberName"
+        placeholder="Name"
+        required
+      >
+
+      <input
+        type="email"
+        id="memberEmail"
+        placeholder="Email"
+        required
+      >
+
+      <button class="success" type="submit">
+        Add Member
+      </button>
+
+    </form>
+
+  </section>
+
+
+<!-- borrow books -->
+
+  <section>
+
+    <h2>Borrow a Book</h2>
+
+    <form id="loanForm">
+
+      <input
+        type="number"
+        id="loanBookId"
+        placeholder="Book ID"
+        required
+      >
+
+      <input
+        type="number"
+        id="loanMemberId"
+        placeholder="Member ID"
+        required
+      >
+
+      <button class="success" type="submit">
+        Borrow Book
+      </button>
+
+    </form>
+
+  </section>
+
+
+<!-- retun book -->
+
+  <section>
+
+    <h2>Return a Book</h2>
+
+    <form id="returnForm">
+
+      <input
+        type="number"
+        id="returnLoanId"
+        placeholder="Loan ID"
+        required
+      >
+
+      <button type="submit">
+        Return Book
+      </button>
+
+    </form>
+
+  </section>
+
+
+<!-- member loans -->
+
+  <section>
+
+    <h2>Member Loans</h2>
+
+    <form id="memberLoansForm">
+
+      <input
+        type="number"
+        id="memberLoansId"
+        placeholder="Member ID"
+        required
+      >
+
+      <button type="submit">
+        View Loans
+      </button>
+
+    </form>
+
+    <div id="memberLoans"></div>
+
+  </section>
+
+
+ <!-- stats -->
+
+  <section>
+
+    <h2>Statistics</h2>
+
+    <button onclick="loadStats()">
+      Load Statistics
+    </button>
+
+    <div id="stats"></div>
+
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
