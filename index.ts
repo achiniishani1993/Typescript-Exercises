@@ -1,5 +1,20 @@
 import express from "express";
 import pool from "./db.ts";
+import { validate } from "./src/middleware/validate.js";
+import {
+  bookSchema,
+  bookPatchSchema,
+  bookQuerySchema,
+  type Book,
+  idParamSchema,
+  authorSchema,
+  memberSchema,
+  loanSchema,
+  type Author,
+  type Member,
+  type Loan,
+} from "./src/schemas.ts";
+import { z } from "zod";
 
 const app = express();
 
@@ -13,8 +28,16 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/books", async (req, res) => {
-  const { genre, sort, search } = req.query;
+  const parsed = bookQuerySchema.safeParse(req.query);
 
+  if (!parsed.success) {
+    return res.status(400).json({
+      errors: z.flattenError(parsed.error),
+    });
+  }
+
+  const { genre, sort, search, page, limit } = parsed.data;
+  const offset = (page - 1) * limit;
   const allowedSorts = ["title", "published_year", "genre"];
 
   // sort
@@ -25,26 +48,7 @@ app.get("/books", async (req, res) => {
     return;
   }
 
-  // Pagination
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
-
-  if (
-    !Number.isInteger(page) ||
-    !Number.isInteger(limit) ||
-    page < 1 ||
-    limit < 1
-  ) {
-    res.status(400).json({
-      error: "Page and limit must be positive numbers",
-    });
-    return;
-  }
-
-  const offset = (page - 1) * limit;
-
   try {
-   
     const conditions: string[] = [];
     const values: string[] = [];
 
@@ -59,11 +63,8 @@ app.get("/books", async (req, res) => {
     }
 
     const whereClause =
-      conditions.length > 0
-        ? `WHERE ${conditions.join(" AND ")}`
-        : "";
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-   
     let query = `SELECT *
                  FROM books
                  ${whereClause}`;
@@ -80,13 +81,11 @@ app.get("/books", async (req, res) => {
 
     const result = await pool.query(query, values);
 
-   
     const countQuery = `
       SELECT COUNT(*) AS total
       FROM books
       ${whereClause}
     `;
-
 
     const countValues = values.slice(0, -2);
 
@@ -113,21 +112,24 @@ app.get("/books", async (req, res) => {
   }
 });
 
-app.post("/books", async (req, res) => {
-  const { title, genre, published_year, author_id } = req.body ?? {};
-
-  if (!title) {
-    res.status(400).json({ error: "Title is required" });
-    return;
-  }
+app.post("/books", validate(bookSchema, "body"), async (req, res) => {
+  // const result = bookSchema.safeParse(req.body);
+  const book = res.locals.validated;
+  // if (!result.success) {
+  //   return res.status(400).json({
+  //     errors: z.flattenError(result.error),
+  //   });
+  // }
+  // const { title, genre, published_year, author_id } = result.data;
 
   try {
-    const result = await pool.query(
+    const result = await pool.query<Book>(
       `INSERT INTO books
        (title, genre, published_year, author_id)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [title, genre, published_year, author_id],
+      // [title, genre, published_year, author_id],
+      [book.title, book.genre, book.published_year, book.author_id],
     );
 
     res.status(201).json(result.rows[0]);
@@ -155,14 +157,16 @@ app.post("/books", async (req, res) => {
   }
 });
 
-app.get("/books/:id", async (req, res) => {
-  const { id } = req.params;
+app.get("/books/:id", validate(idParamSchema, "params"), async (req, res) => {
+  // const parsed = idParamSchema.safeParse(req.params);
 
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({ error: "ID must be a number" });
-    return;
-  }
-
+  // if (!parsed.success) {
+  //   return res.status(400).json({
+  //     errors: z.flattenError(parsed.error),
+  //   });
+  // }
+  // const { id } = parsed.data;
+  const { id } = res.locals.validated;
   try {
     const result = await pool.query("SELECT * FROM books WHERE id = $1", [id]);
 
@@ -184,14 +188,22 @@ app.get("/books/:id", async (req, res) => {
 });
 
 app.patch("/books/:id", async (req, res) => {
-  const { id } = req.params;
-  const { title, genre, published_year } = req.body ?? {};
+  const parsed = bookPatchSchema.safeParse(req.body);
+  const parsedId = idParamSchema.safeParse(req.params);
 
-  // Validate ID
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({ error: "ID must be a number" });
-    return;
+  if (!parsed.success) {
+    return res.status(400).json({
+      errors: z.flattenError(parsed.error),
+    });
   }
+
+  if (!parsedId.success) {
+    return res.status(400).json({
+      errors: z.flattenError(parsedId.error),
+    });
+  }
+  const { id } = parsedId.data;
+  const { title, genre, published_year } = parsed.data;
 
   // Validate body
   if (Object.keys(req.body ?? {}).length === 0) {
@@ -200,7 +212,7 @@ app.patch("/books/:id", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await pool.query<Book>(
       `UPDATE books
        SET title = COALESCE($1, title),
            genre = COALESCE($2, genre),
@@ -231,7 +243,7 @@ app.patch("/books/:id", async (req, res) => {
 
 app.get("/authors", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM authors");
+    const result = await pool.query<Author>("SELECT * FROM authors");
 
     res.status(200).json(result.rows);
   } catch (err) {
@@ -245,18 +257,19 @@ app.get("/authors", async (req, res) => {
   }
 });
 
-app.post("/authors", async (req, res) => {
-  const { name } = req.body ?? {};
+app.post("/authors", validate(authorSchema, "body"), async (req, res) => {
+  // const { name } = req.body ?? {};
 
-  if (!name) {
-    res.status(400).json({ error: "Name is required" });
-    return;
-  }
+  // if (!name) {
+  //   res.status(400).json({ error: "Name is required" });
+  //   return;
+  // }
+  const author = res.locals.validated;
 
   try {
     const result = await pool.query(
       "INSERT INTO authors (name) VALUES ($1) RETURNING *",
-      [name],
+      [author.name],
     );
 
     res.status(201).json(result.rows[0]);
@@ -271,47 +284,54 @@ app.post("/authors", async (req, res) => {
   }
 });
 
-app.get("/authors/:id/books", async (req, res) => {
-  const { id } = req.params;
+app.get(
+  "/authors/:id/books",
+  validate(idParamSchema, "params"),
+  async (req, res) => {
+    // const parsed = idParamSchema.safeParse(req.params);
 
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({ error: "ID must be a number" });
-    return;
-  }
+    // if (!parsed.success) {
+    //   return res.status(400).json({
+    //     errors: z.flattenError(parsed.error),
+    //   });
+    // }
+    // const { id } = parsed.data;
+    const { id } = res.locals.validated as { id: number };
 
-  try {
-    const result = await pool.query(
-      `SELECT books.*
+    try {
+      const result = await pool.query(
+        `SELECT books.*
        FROM books
        JOIN authors ON books.author_id = authors.id
        WHERE authors.id = $1`,
-      [id],
-    );
+        [id],
+      );
 
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.log(err);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.log(err);
 
-    if (err instanceof Error) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.status(500).json({ error: "An unknown error occurred" });
+      if (err instanceof Error) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.status(500).json({ error: "An unknown error occurred" });
+      }
     }
-  }
-});
+  },
+);
 
 // 7. Borrowing books (many-to-many)
 
-app.post("/members", async (req, res) => {
-  const { name, email } = req.body ?? {};
+app.post("/members", validate(memberSchema, "body"), async (req, res) => {
+  // const { name, email } = req.body ?? {};
 
-  if (!name || !email) {
-    res.status(400).json({
-      error: "Name and email are required",
-    });
-    return;
-  }
-
+  // if (!name || !email) {
+  //   res.status(400).json({
+  //     error: "Name and email are required",
+  //   });
+  //   return;
+  // }
+  const { name, email } = res.locals.validated as Member;
   try {
     const result = await pool.query(
       `INSERT INTO members (name, email)
@@ -345,15 +365,18 @@ app.post("/members", async (req, res) => {
   }
 });
 
-app.post("/loans", async (req, res) => {
-  const { book_id, member_id } = req.body ?? {};
+app.post("/loans", validate(loanSchema, "body"), async (req, res) => {
+  // const { book_id, member_id } = req.body ?? {};
 
-  if (!book_id || !member_id) {
-    res.status(400).json({
-      error: "book_id and member_id are required",
-    });
-    return;
-  }
+  // if (!book_id || !member_id) {
+  //   res.status(400).json({
+  //     error: "book_id and member_id are required",
+  //   });
+  //   return;
+  // }
+
+  const { book_id, member_id } = res.locals.validated as Loan;
+
   try {
     const borrowedBook = await pool.query(
       `SELECT * from loans
@@ -387,57 +410,68 @@ app.post("/loans", async (req, res) => {
   }
 });
 
-app.patch("/loans/:id/return", async (req, res) => {
-  const { id } = req.params;
+app.patch(
+  "/loans/:id/return",
+  validate(idParamSchema, "params"),
+  async (req, res) => {
+    // const parsed = idParamSchema.safeParse(req.params);
 
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({
-      error: "ID is a number",
-    });
-    return;
-  }
+    // if (!parsed.success) {
+    //   return res.status(400).json({
+    //     errors: z.flattenError(parsed.error),
+    //   });
+    // }
+    // const { id } = parsed.data;
 
-  try {
-    const returnBook = await pool.query(
-      `UPDATE loans
+    const { id } = res.locals.validated as { id: number };
+
+    try {
+      const returnBook = await pool.query(
+        `UPDATE loans
        SET returned_at = NOW()
        WHERE id = $1
        RETURNING *`,
-      [id]
-    );
+        [id],
+      );
 
-    if (returnBook.rows.length === 0) {
-      res.status(404).json({
-        message: "Not found",
-      });
-      return;
+      if (returnBook.rows.length === 0) {
+        res.status(404).json({
+          message: "Not found",
+        });
+        return;
+      }
+
+      res.status(200).json(returnBook.rows[0]);
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.status(500).json({
+          error: "An unknown error occurred",
+        });
+      }
     }
+  },
+);
 
-    res.status(200).json(returnBook.rows[0]);
-  } catch (err) {
-    if (err instanceof Error) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.status(500).json({
-        error: "An unknown error occurred",
-      });
-    }
-  }
-});
+app.get(
+  "/members/:id/loans",
+  validate(idParamSchema, "params"),
+  async (req, res) => {
+    // const parsed = idParamSchema.safeParse(req.params);
 
-app.get("/members/:id/loans", async (req, res) => {
-  const { id } = req.params;
+    // if (!parsed.success) {
+    //   return res.status(400).json({
+    //     errors: z.flattenError(parsed.error),
+    //   });
+    // }
+    // const { id } = parsed.data;
 
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({
-      error: "ID is a number",
-    });
-    return;
-  }
+    const { id } = res.locals.validated as { id: number };
 
-  try {
-    const result = await pool.query(
-      `SELECT
+    try {
+      const result = await pool.query(
+        `SELECT
          loans.id,
          loans.book_id,
          books.title,
@@ -449,20 +483,21 @@ app.get("/members/:id/loans", async (req, res) => {
        JOIN books
          ON loans.book_id = books.id
        WHERE members.id = $1`,
-      [id]
-    );
+        [id],
+      );
 
-    res.status(200).json(result.rows);
-  } catch (err) {
-    if (err instanceof Error) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.status(500).json({
-        error: "An unknown error occurred",
-      });
+      res.status(200).json(result.rows);
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.status(500).json({
+          error: "An unknown error occurred",
+        });
+      }
     }
-  }
-});
+  },
+);
 
 app.get("/stats", async (req, res) => {
   try {
@@ -487,40 +522,45 @@ app.get("/stats", async (req, res) => {
   }
 });
 
-app.delete("/books/:id", async (req, res) => {
-  const { id } = req.params;
+app.delete(
+  "/books/:id",
+  validate(idParamSchema, "params"),
+  async (req, res) => {
+    // const parsed = idParamSchema.safeParse(req.params);
 
-  if (!Number.isInteger(Number(id))) {
-    res.status(400).json({ error: "ID must be a number" });
-    return;
-  }
+    // if (!parsed.success) {
+    //   return res.status(400).json({
+    //     errors: z.flattenError(parsed.error),
+    //   });
+    // }
+    // const { id } = parsed.data;
+    const { id } = res.locals.validated as { id: number };
 
-  try {
-    const result = await pool.query(
-      "DELETE FROM books WHERE id = $1 RETURNING *",
-      [id]
-    );
+    try {
+      const result = await pool.query(
+        "DELETE FROM books WHERE id = $1 RETURNING *",
+        [id],
+      );
 
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: "Book not found" });
-      return;
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Book not found" });
+        return;
+      }
+
+      res.status(200).json(result.rows[0]);
+    } catch (err) {
+      console.log(err);
+
+      if (err instanceof Error) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.status(500).json({
+          error: "An unknown error occurred",
+        });
+      }
     }
-
-    res.status(200).json(result.rows[0]);
-  } catch (err) {
-    console.log(err);
-
-    if (err instanceof Error) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.status(500).json({
-        error: "An unknown error occurred",
-      });
-    }
-  }
-});
-
-
+  },
+);
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
