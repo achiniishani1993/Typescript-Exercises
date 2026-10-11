@@ -1,31 +1,27 @@
 name: lint
-
 on:
-pull_request:
-push:
+  pull_request:
+  push:
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-lint:
-runs-on: ubuntu-latest
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v5
+      - name: setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'npm'
 
-  - name: Setup Node.js
-    uses: actions/setup-node@v6
-    with:
-      node-version: 22
-      cache: npm
+      - name: install dependencies
+        run: npm ci
 
-  - name: Install dependencies
-    run: npm ci
-
-  - name: Check formatting
-    run: npm run format-check
-
-  - name: Run ESLint
-    run: npm run lint
+      - name: lint
+        run: |
+          npm run format-check
+          npm run lint
