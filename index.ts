@@ -2,6 +2,12 @@ import express from "express";
 import pool from "./db.ts";
 import { validate } from "./src/middleware/validate.js";
 import {
+  Book as BookSequelize,
+  Author as AuthorSequelize,
+  Member as MemberSequelize,
+  Loans as LoansSequelize,
+} from "./models/Associations.ts";
+import {
   bookSchema,
   bookPatchSchema,
   bookQuerySchema,
@@ -15,6 +21,27 @@ import {
   type Loan,
 } from "./src/schemas.ts";
 import { z } from "zod";
+
+
+
+import dotenv from 'dotenv';
+import sequelize from './sequelize';
+
+dotenv.config();
+
+async function testDatabaseConnection(): Promise<void> {
+    try {
+        await sequelize.authenticate();
+
+        console.log('Database connection established successfully');
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+}
+
+testDatabaseConnection();
+
+
 
 const app = express();
 
@@ -34,7 +61,7 @@ app.get("/books", async (req, res) => {
     return res.status(400).json({
       errors: z.flattenError(parsed.error),
     });
-  }
+    }
 
   const { genre, sort, search, page, limit } = parsed.data;
   const offset = (page - 1) * limit;
@@ -79,7 +106,16 @@ app.get("/books", async (req, res) => {
     values.push(String(limit));
     values.push(String(offset));
 
-    const result = await pool.query(query, values);
+   // const result = await BookSequelize.findAll();// pool.query(query, values);
+    const books = await BookSequelize.findAll({
+      include: [
+        {
+          model: AuthorSequelize,
+          attributes: ["name"],
+        },
+      ],
+    });
+
 
     const countQuery = `
       SELECT COUNT(*) AS total
@@ -97,7 +133,7 @@ app.get("/books", async (req, res) => {
       page,
       limit,
       total,
-      data: result.rows,
+      data: books,
     });
   } catch (err) {
     console.log(err);
@@ -123,16 +159,16 @@ app.post("/books", validate(bookSchema, "body"), async (req, res) => {
   // const { title, genre, published_year, author_id } = result.data;
 
   try {
-    const result = await pool.query<Book>(
-      `INSERT INTO books
-       (title, genre, published_year, author_id)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      // [title, genre, published_year, author_id],
-      [book.title, book.genre, book.published_year, book.author_id],
-    );
-
-    res.status(201).json(result.rows[0]);
+    // const result = await pool.query<Book>(
+    //   `INSERT INTO books
+    //    (title, genre, published_year, author_id)
+    //    VALUES ($1, $2, $3, $4)
+    //    RETURNING *`,
+    //   // [title, genre, published_year, author_id],
+    //   [book.title, book.genre, book.published_year, book.author_id],
+    // );
+    const result = await BookSequelize.create(book);
+    res.status(201).json(result);
   } catch (err) {
     console.log(err);
 
@@ -168,14 +204,15 @@ app.get("/books/:id", validate(idParamSchema, "params"), async (req, res) => {
   // const { id } = parsed.data;
   const { id } = res.locals.validated;
   try {
-    const result = await pool.query("SELECT * FROM books WHERE id = $1", [id]);
+    // const result = await pool.query("SELECT * FROM books WHERE id = $1", [id]);
+      const result = await BookSequelize.findByPk(id);
 
-    if (result.rows.length === 0) {
+    if (!result) {
       res.status(404).json({ message: "Book not found" });
       return;
     }
 
-    res.status(200).json(result.rows[0]);
+    res.status(200).json(result);
   } catch (err) {
     console.log(err);
 
@@ -202,42 +239,47 @@ app.patch("/books/:id", async (req, res) => {
       errors: z.flattenError(parsedId.error),
     });
   }
+
   const { id } = parsedId.data;
   const { title, genre, published_year } = parsed.data;
 
-  // Validate body
   if (Object.keys(req.body ?? {}).length === 0) {
-    res.status(400).json({ error: "Request body cannot be empty" });
-    return;
+    return res.status(400).json({
+      error: "Request body cannot be empty",
+    });
   }
 
   try {
-    const result = await pool.query<Book>(
-      `UPDATE books
-       SET title = COALESCE($1, title),
-           genre = COALESCE($2, genre),
-           published_year = COALESCE($3, published_year)
-       WHERE id = $4
-       RETURNING *`,
-      [title ?? null, genre ?? null, published_year ?? null, id],
-    );
+    const book = await BookSequelize.findByPk(id);
 
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: "Book not found" });
-      return;
+    if (!book) {
+      return res.status(404).json({
+        message: "Book not found",
+      });
     }
 
-    res.status(200).json(result.rows[0]);
+    if (title !== undefined) book.title = title;
+    if (genre !== undefined) book.genre = genre;
+    if (published_year !== undefined) {
+      book.published_year = published_year;
+    }
+
+    await book.save();
+
+    return res.status(200).json(book);
   } catch (err) {
-    console.log(err);
+    console.error(err);
 
     if (err instanceof Error) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.status(500).json({ error: "An unknown error occurred" });
+      return res.status(500).json({ error: err.message });
     }
+
+    return res.status(500).json({
+      error: "An unknown error occurred",
+    });
   }
 });
+
 
 // exercise 6 authors
 
@@ -299,15 +341,29 @@ app.get(
     const { id } = res.locals.validated as { id: number };
 
     try {
-      const result = await pool.query(
-        `SELECT books.*
-       FROM books
-       JOIN authors ON books.author_id = authors.id
-       WHERE authors.id = $1`,
-        [id],
-      );
+      // const result = await pool.query(
+      //   `SELECT books.*
+      //  FROM books
+      //  JOIN authors ON books.author_id = authors.id
+      //  WHERE authors.id = $1`,
+      //   [id],
+      // );
 
-      res.status(200).json(result.rows);
+       const author = await AuthorSequelize.findByPk(id, {
+        include: [
+          {
+            model: BookSequelize,
+          },
+        ],
+      });
+
+      if (!author) {
+        return res.status(404).json({
+          message: "Author not found",
+        });
+      }
+
+      return res.status(200).json(author);
     } catch (err) {
       console.log(err);
 
@@ -378,27 +434,35 @@ app.post("/loans", validate(loanSchema, "body"), async (req, res) => {
   const { book_id, member_id } = res.locals.validated as Loan;
 
   try {
-    const borrowedBook = await pool.query(
-      `SELECT * from loans
-  WHERE book_id = $1
-  AND returned_at IS NULL`,
-      [book_id],
-    );
+  //   const borrowedBook = await pool.query(
+  //     `SELECT * from loans
+  // WHERE book_id = $1
+  // AND returned_at IS NULL`,
+  //     [book_id],
+  //   );
 
-    if (borrowedBook.rows.length > 0) {
-      res.status(409).json({
-        error: "Book is already borrowed",
+    // if (borrowedBook.rows.length > 0) {
+    //   res.status(409).json({
+    //     error: "Book is already borrowed",
+    //   });
+    //   return;
+    // }
+    // const result = await pool.query(
+    //   `INSERT INTO loans (book_id, member_id)
+    //    VALUES ($1, $2)
+    //    RETURNING *`,
+    //   [book_id, member_id],
+    // );
+
+   // res.status(201).json(result.rows[0]);
+   const loan = await LoansSequelize.create({
+        book_id,
+        member_id,
+        borrowed_at: new Date(),
+        returned_at: null,
       });
-      return;
-    }
-    const result = await pool.query(
-      `INSERT INTO loans (book_id, member_id)
-       VALUES ($1, $2)
-       RETURNING *`,
-      [book_id, member_id],
-    );
 
-    res.status(201).json(result.rows[0]);
+      res.status(201).json(loan);
   } catch (err) {
     if (err instanceof Error) {
       res.status(500).json({ error: err.message });
@@ -470,23 +534,30 @@ app.get(
     const { id } = res.locals.validated as { id: number };
 
     try {
-      const result = await pool.query(
-        `SELECT
-         loans.id,
-         loans.book_id,
-         books.title,
-         loans.borrowed_at,
-         loans.returned_at
-       FROM loans
-       JOIN members
-         ON loans.member_id = members.id
-       JOIN books
-         ON loans.book_id = books.id
-       WHERE members.id = $1`,
-        [id],
-      );
+      // const result = await pool.query(
+      //   `SELECT
+      //    loans.id,
+      //    loans.book_id,
+      //    books.title,
+      //    loans.borrowed_at,
+      //    loans.returned_at
+      //  FROM loans
+      //  JOIN members
+      //    ON loans.member_id = members.id
+      //  JOIN books
+      //    ON loans.book_id = books.id
+      //  WHERE members.id = $1`,
+      //   [id],
+      // );
 
-      res.status(200).json(result.rows);
+      // res.status(200).json(result.rows);
+       const loans = await LoansSequelize.findAll({
+        where: {
+          member_id: id,
+        },
+      });
+
+      res.status(200).json(loans);
     } catch (err) {
       if (err instanceof Error) {
         res.status(500).json({ error: err.message });
@@ -521,43 +592,32 @@ app.get("/stats", async (req, res) => {
     }
   }
 });
-
 app.delete(
   "/books/:id",
   validate(idParamSchema, "params"),
   async (req, res) => {
-    // const parsed = idParamSchema.safeParse(req.params);
-
-    // if (!parsed.success) {
-    //   return res.status(400).json({
-    //     errors: z.flattenError(parsed.error),
-    //   });
-    // }
-    // const { id } = parsed.data;
     const { id } = res.locals.validated as { id: number };
 
     try {
-      const result = await pool.query(
-        "DELETE FROM books WHERE id = $1 RETURNING *",
-        [id],
-      );
+      const book = await BookSequalize.findByPk(id);
 
-      if (result.rows.length === 0) {
-        res.status(404).json({ message: "Book not found" });
-        return;
+      if (!book) {
+        return res.status(404).json({ message: "Book not found" });
       }
 
-      res.status(200).json(result.rows[0]);
+      await book.destroy();
+
+      return res.status(200).json(book);
     } catch (err) {
-      console.log(err);
+      console.error(err);
 
       if (err instanceof Error) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.status(500).json({
-          error: "An unknown error occurred",
-        });
+        return res.status(500).json({ error: err.message });
       }
+
+      return res.status(500).json({
+        error: "An unknown error occurred",
+      });
     }
   },
 );

@@ -33,3 +33,16 @@ docker compose up -d
 ```
 
 `init.sql` creates the database tables.
+
+
+# Skill 3: The Book model and CRUD -screenshots
+
+<img src="/images/get.png" alt="Books API screenshot" width="600">
+
+<img src="/images/get:id.png" alt="Books API screenshot" width="600">
+
+<img src="/images/post.png" alt="Books API screenshot" width="600">
+
+<img src="/images/patch.png" alt="Books API screenshot" width="600">
+
+<img src="/images/delete.png" alt="Books API screenshot" width="600">
