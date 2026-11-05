@@ -3,6 +3,7 @@ import { z } from "zod";
 const menu = {
   margherita: 100,
   pepperoni: 120,
+   vegetarian: 110
 };
 
 // Schemas
