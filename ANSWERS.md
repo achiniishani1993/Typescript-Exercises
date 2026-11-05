@@ -29,3 +29,10 @@ code were wrong? What could you do to make it more trustworthy?
 
 Yes. Math.random() generates different number. To make it trustworthy can mock Math.random() using Vitest's vi.spyOn(). References - https://main.vitest.dev/guide/mocking/functions?utm_source
 
+# Exercise 6
+Question: In the "foundation" test, the error comes from checkOutBook , but you only called
+borrowBook . What does that show you about how errors travel through a chain of functions?
+
+Errors can move up through several function calls. If checkOutBook throws an error, it can pass through borrowBook and reach the test.
+
+

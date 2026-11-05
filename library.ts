@@ -71,3 +71,16 @@ export const registerLoan = (
     memberId,
   });
 };
+
+export const borrowBook = (
+  title: unknown,
+  memberId: unknown
+): Loan => {
+  const book = findBook(title);
+
+  const loanId = checkOutBook(book);
+
+  const loan = registerLoan(loanId, title, memberId);
+
+  return loan;
+};
