@@ -8,8 +8,18 @@ question 05 - pizzashop.integration.test.ts why?? Because orderPizza("vegetarian
 
 # Exercise 2
 
+Question: This bug would never have been found without a test. What was it, and what does that tell you about testing error messages?
 
 Expected: "Cannot charge the customer without a valid order ID!"
 Received: "Cannot charge the cutomer without a valid order ID!"
 
 The spelling is different in "customer"
+
+Tests can catch mistakes and ensures that error messages are correct and consistent.
+
+# Exercise 3
+
+Question: Why use toEqual and not toBe when you compare objects?
+
+toEqual compares the contents and values of objects, including properties but toBe checks whether two values are exactly the same in memory. 
+
