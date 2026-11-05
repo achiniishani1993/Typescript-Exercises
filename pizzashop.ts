@@ -6,7 +6,7 @@ const menu = {
 };
 
 // Schemas
-export const PizzaTypeSchema = z.enum(["margherita", "pepperoni"]);
+export const PizzaTypeSchema = z.enum(["margherita", "pepperoni", "vegetarian"]);
 
 export const PizzaSchema = z.object({
   type: PizzaTypeSchema,
