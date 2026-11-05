@@ -39,3 +39,17 @@ export const findBook = (title: unknown): Book => {
 
   return BookSchema.parse(catalogue[bookTitle]);
 };
+
+// 6. checkoutBook 
+
+export const checkOutBook = (book: unknown): number => {
+  const validBook = BookSchema.parse(book);
+
+  if (validBook.copiesAvailable === 0) {
+    throw new Error("No copies available");
+  }
+
+  const loanId = Math.floor(Math.random() * 9000) + 1000;
+
+  return loanId;
+};

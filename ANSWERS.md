@@ -23,3 +23,9 @@ Question: Why use toEqual and not toBe when you compare objects?
 
 toEqual compares the contents and values of objects, including properties but toBe checks whether two values are exactly the same in memory. 
 
+# Exercise 5
+Question: Your "between 1000 and 9999" test uses a random number. Could it pass by luck even if the
+code were wrong? What could you do to make it more trustworthy?
+
+Yes. Math.random() generates different number. To make it trustworthy can mock Math.random() using Vitest's vi.spyOn(). References - https://main.vitest.dev/guide/mocking/functions?utm_source
+
