@@ -6,3 +6,10 @@ The red line shows a TypeScript error. TypeScript checks types, while Zod checks
 
 question 05 - pizzashop.integration.test.ts why?? Because orderPizza("vegetarian") tests the ordering process, which may involve orderPizza(), createPizza() and other functions. 
 
+# Exercise 2
+
+
+Expected: "Cannot charge the customer without a valid order ID!"
+Received: "Cannot charge the cutomer without a valid order ID!"
+
+The spelling is different in "customer"

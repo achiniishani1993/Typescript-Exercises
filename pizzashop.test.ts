@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { createPizza, orderPizza, sendOrder } from "./pizzashop";
+import { createPizza, orderPizza, sendOrder, chargeCustomer} from "./pizzashop";
 
 describe("Pizza Shop Unit Tests", () => {
   test("createPizza returns correct type and price", () => {
@@ -35,4 +35,28 @@ describe("Pizza Shop Unit Tests", () => {
     price: 110,
   });
 });
+
+test("chargeCustomer returns true for a valid order ID and amount", () => {
+  const result = chargeCustomer(42, 100);
+
+  expect(result).toBe(true);
+});
+
+test("chargeCustomer order ID is undefined", () => {
+  expect(() => chargeCustomer(undefined, 100))
+    .toThrow("Cannot charge the customer without a valid order ID!");
+});
+
+test("chargeCustomer order ID is negative", () => {
+  expect(() => chargeCustomer(-1, 100)).toThrow();
+});
+
+test("chargeCustomer order ID is not a whole number", () => {
+  expect(() => chargeCustomer(12.5, 100)).toThrow();
+});
+
+test("chargeCustomer amount is zero", () => {
+  expect(() => chargeCustomer(42, 0)).toThrow();
+});
+
 });
