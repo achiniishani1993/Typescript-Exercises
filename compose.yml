@@ -24,8 +24,15 @@ services:
     depends_on:
       - db
 
+  sonarqube:
+    image: sonarqube
+    container_name: my-sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
 
 volumes:
   pgdata:
   pgadmin_data:
-
+  sonarqube_data:

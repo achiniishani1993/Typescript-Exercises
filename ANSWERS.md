@@ -159,3 +159,102 @@ I added an `instanceof ZodError` check inside the catch block. Invalid IDs now r
 
 4. Prevention
 I could have detected this bug sooner by testing various inputs, such as valid, missing, and invalid IDs. Consistent use of Zod validation and error handling across routes would have been beneficial. Implementing automated tests would ensure that each case returns the correct HTTP status code.
+
+
+## Week 11 – Code Quality with SonarQube
+
+* Exercise 1: SonarQube in Docker
+
+1. Question- What does docker ps show you? Which columns tell you that SonarQube is running, and on which port?
+
+0b4fe69bbca5   sonarqube        "/opt/sonarqube/dock…"   18 minutes ago   Up 18 minutes   0.0.0.0:9000->9000/tcp          my-sonarqube
+5cfd45837a9c   dpage/pgadmin4   "/entrypoint.sh"         4 hours ago      Up 4 hours      443/tcp, 0.0.0.0:8080->80/tcp   my_database12
+8380fabc5801   postgres         "docker-entrypoint.s…"   4 hours ago      Up 4 hours      0.0.0.0:5433->5432/tcp          my_database11
+
+first one identifies the container as my-sonarqube and The PORTS column shows that port 9000
+
+2. Question 2: Why run SonarQube in Docker instead of installing it directly on your computer?
+
+Running SonarQube in Docker makes installation and configuration easier because Docker manages the application and its dependencies in an isolated container.
+
+* Exercise 2: Your first scan
+
+# screenshots
+<img src="/images/sona-1.png" alt="Books API screenshot" width="600">
+
+3. Question: Did your project pass or fail the quality gate? How many issues did SonarQube find?
+
+Passed. 26 issues 
+
+* Exercise 3: Read before you fix
+
+* Issue 1
+
+Rule name: Web:InputWithoutLabelCheck
+
+File: public/index.html
+
+Line: 177-181
+
+What is wrong - The search input field does not have an associated label.
+
+What would compliant code look like? - for attribute of the <label> and connecting it to the input field using Id 
+
+Do I agree? Why? - YES. Adding a proper label helps and increase understand. 
+
+* Issue 2 
+
+Rule name: javascript
+
+File: public/script.js
+
+Line: 371
+
+What is wrong - The function loadBooks(currentPage) appears to return a Promise, but the code does not wait for it to finish or handle a possible rejection.
+
+What would compliant code look like? - 
+one way it shows;
+
+async function sendMetrics(payload) {
+  await fetch('/metrics', { method: 'POST', body: payload });
+}
+
+Do I agree? Why? - Yes, I agree because asynchronous operations can fail.
+
+* Issue 3 
+
+
+Rule name: typescript
+
+File: index.ts
+
+Line: 48-56
+
+What is wrong - Express can disclose information about the technology used by the application through HTTP response headers.
+
+What would compliant code look like? - 
+I can use this;
+
+let express = require('express');
+
+let example = express();
+example.disable("x-powered-by");
+
+Do I agree? Why? - Yes, It is a simple security improvement that reduces unnecessary information disclosure.
+
+4. Question: Depending on the version, SonarQube groups issues either by the quality they affect (Security, Reliability, Maintainability) or by type (Vulnerability, Bug, Code Smell). Explain each of the three groups your SonarQube uses, with an example.
+
+
+My SonarQube uses the categories Security, Reliability and Maintainability.
+
+Security: Security issues are problems that could make an application vulnerable to attacks or unauthorized access. 
+
+Reliability: Reliability issues are problems in the code that could cause errors or make the application behave incorrectly. 
+
+Maintainability: Maintainability issues are problems that make code difficult to understand, modify or maintain. 
+
+
+5. Question: SonarQube, your tests and Sentry all help you find problems. What does each one find that the others can't?
+
+SonarQube finds potential problems in the source code, automated tests check whether the application works correctly, and Sentry detects errors that occur while the application is running. They find different types of problems.
+
