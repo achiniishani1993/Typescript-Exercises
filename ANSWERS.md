@@ -258,3 +258,72 @@ Maintainability: Maintainability issues are problems that make code difficult to
 
 SonarQube finds potential problems in the source code, automated tests check whether the application works correctly, and Sentry detects errors that occur while the application is running. They find different types of problems.
 
+* Exercise 4: Get the token out of your code
+
+6. Question: Your package.json goes to GitHub. What could someone do with your SonarQube token if they found it there? What about a database password or a Sentry DSN?
+
+If someone found my SonarQube token on GitHub, they could potentially use it to authenticate with my SonarQube server and submit unauthorized code analyses, depending on the token's permissions.
+
+If someone found my database password, they could potentially connect to my database and read, modify or delete data, depending on the database user's permissions.
+
+In the context of security, exposure of a SonarQube token on GitHub could allow unauthorized code analyses depending on its permissions. 
+
+A database password could enable access to read, modify, or delete data, contingent on user permissions. 
+
+Sentry DSN, intended for client-side use, could permit the submission of false events to a Sentry project but typically does not grant administrative access.
+
+
+7. Question: Why is it better to put settings like the project key in long command?
+sonar-project.properties than in a
+
+Utilizing a properties file for settings such as the project key enhances clarity and maintainability of the scanner command, centralizes configuration, and minimizes errors. It allows for consistent reuse during SonarQube scans and can be safely committed to GitHub since it contains non-sensitive project information.
+
+* Exercise 5: Scan only your own code
+
+8. Look at the Code tab in SonarQube. Which folders and files were scanned?
+
+I have already added sonar.exclusions=node_modules/**,coverage/**,.git/** to the sonar-project.properties when im doing exercise 4. So right now I can see;
+
+models
+Public
+src 
+db.ts
+eslint.config
+index.ts
+instrument.ts
+sequeilze.ts
+
+9. Question: What changed in the numbers, and why? Why is it a problem when a tool reports issues in code you didn't write?
+
+Usually when after adding exclusions and configuring, the number of lines of code should change. The number of issues also changed.
+
+The numbers changed because SonarQube now focuses on my own application code instead of analysing unnecessary files. 
+
+
+
+* Exercise 6: Fix, test, repeat
+
+Rule- File - What I changed- Tests still green? 
+
+Promises must be awaited, end with a call to .catch, end with a call to .then with a  - rejection handler or be explicitly marked as ignored with the `void` operator.
+
+script.js
+
+used async and await 
+
+Yes
+
+I have done three isuues all three were same. 
+
+10. Question 1: Why run your tests after every fix, even when the change looks small?
+
+It help to check that the application still behaves correctly after each modification.
+
+11. Question 2: Choose one of your fixes. Is the code easier to read now? Explain why or why not.
+
+Yes using async/await makes the asynchronous operation look more like normal code.
+
+* Exercise 8: Make the quality gate fail, then pass
+
+# screenshots
+<img src="/images/sona-2.png" alt="Books API screenshot" width="600">

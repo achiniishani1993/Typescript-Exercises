@@ -178,13 +178,13 @@ function previousPage() {
 }
 
 
-function clearFilters() {
+async function clearFilters() {
 
   document.getElementById("search").value = "";
   document.getElementById("genreFilter").value = "";
   document.getElementById("sort").value = "";
 
-  loadBooks(1);
+  await loadBooks(1);
 }
 
 
@@ -832,5 +832,5 @@ function escapeJs(value) {
 
 
 
-loadBooks(1);
-loadAuthors();
+await loadBooks(1);
+await loadAuthors();
