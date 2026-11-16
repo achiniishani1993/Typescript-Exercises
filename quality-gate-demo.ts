@@ -2,7 +2,12 @@ const dbPassword = "secret123";
 const apiKey = "sk_live_123456789";
 const unusedVariable = "I am never used";
 
+
 export function calculateDiscount(price: number): number {
+  if (price < 0) {
+    throw new Error("Price cannot be negative");
+  }
+
   return price * 0.9;
 }
 
@@ -14,6 +19,7 @@ export function calculateTax(price: number): number {
   } else if (price > 100) {
     return price * 0.15;
   }
+
   return price * 0.1;
 }
 
@@ -25,9 +31,6 @@ export function getShippingCost(weight: number): number {
   } else if (weight > 5) {
     return 25;
   }
-  return 10;
-}
 
-export function connect(): string {
-  return `postgres://admin:${dbPassword}@localhost/db`;
+  return 10;
 }

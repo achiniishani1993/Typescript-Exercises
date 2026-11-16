@@ -325,5 +325,63 @@ Yes using async/await makes the asynchronous operation look more like normal cod
 
 * Exercise 8: Make the quality gate fail, then pass
 
-# screenshots
+# screenshots - Failed
 <img src="/images/sona-2.png" alt="Books API screenshot" width="600">
+
+# screenshots - Passed
+<img src="/images/sona-3.png" alt="Books API screenshot" width="600">
+
+12. Question 1: Why does the Quality Gate focus on new code instead of all the code in the project?
+
+Because developers can make sure that new changes meet quality standards without having to fix every existing problem immediately.
+
+13. Question 2: In a team, what could you use a failing Quality Gate for?
+
+It can be used to prevent bad code from being merged into the main branch.
+
+
+* Exercise 9: Security review and your final report
+
+## Security Review
+
+SonarQube reported no Security Hotspots to review in the latest analysis. Therefore, there were no hotspots to mark as Safe or fix.
+
+No hotspot could be marked as Accept or False Positive because no security hotspots were detected.
+
+
+## 1. Quality Report
+
+| Metric | First scan | Final scan |
+|---|---|---|
+| Quality gate | Failed | Passed |
+| Lines of code | Not recorded | 1750 |
+| Issues | 26 | 23 |
+| Security hotspots to review | No | No |
+| Coverage | 0.0% | 0.0% |
+
+
+The first scan's lines of code were not recorded. The final scan reported 1,750 lines of code.
+
+
+## 2. What changed the most, and what caused it?
+
+The number of issues and security warnings changed after I reviewed and fixed problematic code. I removed hard-coded credentials, improved the code and added unit tests. This helped improve the overall code quality and security.
+
+## 3. Which fix are you proudest of, and why?
+
+I am proudest of removing hard-coded passwords and API keys from the source code. To have more secure because sensitive information is no longer directly exposed in the code.
+
+## 4. What's left, and would you fix it next, or leave it? Why?
+
+Some existing issues may still remain in the project. I would prioritize fixing serious security vulnerabilities and bugs first. Minor issues with little impact could be do later. 
+
+14. Question: You marked an issue as Accept or False positive. What could go wrong if a team does that too often?
+
+Real problems might be ignored and bugs could remain in the code. It can also make the team take code quality less seriously because the warnings are ignored. 
+
+
+
+15. Question: Over the last weeks you used tests, Zod, Sentry and SonarQube. If you could only keep two of them on a real project, which would you choose, and why?
+
+I would choose tests and Sentry. Tests help find bugs while Sentry helps detect and investigate errors.
+
