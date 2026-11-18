@@ -73,7 +73,7 @@ describe("Red test on purpose", () => {
 
 describe("Branch protection test", () => {
   test("should fail on purpose", () => {
-    expect(1 + 1).toBe(4);
+    expect(1 + 1).toBe(2);
   });
 });
 
