@@ -36,3 +36,13 @@ borrowBook . What does that show you about how errors travel through a chain of 
 Errors can move up through several function calls. If checkOutBook throws an error, it can pass through borrowBook and reach the test.
 
 
+## Week 12 – Continuous Integration with GitHub Actions
+
+# Excersice 1 
+
+1. Question: What do on, runs-on, strategy.matrix and steps do? Why did nothing happen when you only pushed the branch?
+
+runs-on specifies the operating system or runner environment where the job will execute. strategy.matrix allows the same job to run multiple times with different configurations. steps are the individual tasks executed inside a job.
+
+The branch did not match the configured trigger, GitHub Actions did not start the workflow. I pushed week12/ci. 
+
