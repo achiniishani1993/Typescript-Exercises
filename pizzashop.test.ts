@@ -61,8 +61,19 @@ test("chargeCustomer amount is zero", () => {
 
 });
 
+// recorrected back to 3 from 2
+
 describe("Red test on purpose", () => {
   test("should fail on purpose", () => {
     expect(1 + 1).toBe(2);
   });
 });
+
+// branch protection
+
+describe("Branch protection test", () => {
+  test("should fail on purpose", () => {
+    expect(1 + 1).toBe(3);
+  });
+});
+
