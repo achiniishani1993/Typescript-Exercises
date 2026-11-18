@@ -46,3 +46,19 @@ runs-on specifies the operating system or runner environment where the job will 
 
 The branch did not match the configured trigger, GitHub Actions did not start the workflow. I pushed week12/ci. 
 
+# Excersice 2
+
+# screenshots 
+<img src="/images/wf-1.png" alt="Books API screenshot" width="600">
+
+1. How many jobs ran, and why?
+
+2 jobs beacuse uses a matrix strategy with two  versions (20.x and 22.x). 
+
+2. Why can a test pass on your laptop but fail in CI?
+
+CI environment exposed a problem that was not noticed when running the tests locally. 
+
+Example at the first when I do it , GitHub Actions failed because the Node.js version was too old for my installed Vitest/Rolldown dependencies. The error showed that Node.js could not import styleText from node:util.
+
+# Exercise 3
