@@ -92,3 +92,15 @@ npm ci is designed for automated environments such as GitHub Actions. It install
 
 CI uses npm ci because it provides a clean and consistent installation of dependencies.
 
+ # Exercise 6
+
+   # screenshots - merged blocked
+<img src="/images/wf-5" alt="Books API screenshot" width="600">
+
+1. Question: What does branch protection do that CI alone can't?
+
+CI automatically runs tests and checks the code to identify problems. However, CI alone does not necessarily prevent someone from merging code when tests fail.
+
+Branch protection adds rules to a branch, such as requiring a pull request and successful status checks before merging.
+
+If CI detects a problem, branch protection can block the merge until the problem is fixed.
