@@ -95,7 +95,7 @@ CI uses npm ci because it provides a clean and consistent installation of depend
  # Exercise 6
 
    # screenshots - merged blocked
-<img src="/images/wf-5" alt="Books API screenshot" width="600">
+<img src="/images/wf-5.png" alt="Books API screenshot" width="600">
 
 1. Question: What does branch protection do that CI alone can't?
 
