@@ -79,3 +79,16 @@ Example at the first when I do it , GitHub Actions failed because the Node.js ve
 
 I would say yes because this could have caught the possibly null bug if strict null checking (strictNullChecks) is enabled in the TypeScript configuration but if strict null checking is disabled, TypeScript might not detect this problem.
 
+ # Exercise 5 
+
+  # screenshots - version: 22, 24 and 26
+<img src="/images/wf-4.png" alt="Books API screenshot" width="600">
+
+1. Question: What's the difference between npm ci and npm install, and why does CI use npm ci?
+
+npm install is mainly used during development. It installs dependencies and can update package-lock.json when package.json changes.
+
+npm ci is designed for automated environments such as GitHub Actions. It installs the exact dependency versions recorded in package-lock.json, removes the existing node_modules folder before installing, and does not modify package.json or package-lock.json.
+
+CI uses npm ci because it provides a clean and consistent installation of dependencies.
+
