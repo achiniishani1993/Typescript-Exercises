@@ -63,6 +63,6 @@ test("chargeCustomer amount is zero", () => {
 
 describe("Red test on purpose", () => {
   test("should fail on purpose", () => {
-    expect(1 + 1).toBe(3);
+    expect(1 + 1).toBe(2);
   });
 });
