@@ -70,4 +70,12 @@ Example at the first when I do it , GitHub Actions failed because the Node.js ve
 
  It shows that something is wrong before the code is merged into the main branch. It allow to identify and fix the failing test before the changes affect the rest of the project. 
 
- 
+ # Exercise 4
+
+ # screenshots - typecheck step failed
+<img src="/images/wf-3.png" alt="Books API screenshot" width="600">
+
+1. Question: Would this step have caught the possibly null bug from Week 11, Exercise 9?
+
+I would say yes because this could have caught the possibly null bug if strict null checking (strictNullChecks) is enabled in the TypeScript configuration but if strict null checking is disabled, TypeScript might not detect this problem.
+
