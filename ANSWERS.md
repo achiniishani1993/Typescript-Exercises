@@ -62,3 +62,12 @@ CI environment exposed a problem that was not noticed when running the tests loc
 Example at the first when I do it , GitHub Actions failed because the Node.js version was too old for my installed Vitest/Rolldown dependencies. The error showed that Node.js could not import styleText from node:util.
 
 # Exercise 3
+
+# screenshots - Failed red
+<img src="/images/wf-2.png" alt="Books API screenshot" width="600">
+
+1. Question: Why is a red cross on the pull request better than one after merging?
+
+ It shows that something is wrong before the code is merged into the main branch. It allow to identify and fix the failing test before the changes affect the rest of the project. 
+
+ 
