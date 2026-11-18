@@ -84,3 +84,5 @@ export const borrowBook = (
 
   return loan;
 };
+
+const copies: number = "three";
