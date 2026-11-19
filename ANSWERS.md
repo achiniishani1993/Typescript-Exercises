@@ -385,3 +385,29 @@ Real problems might be ignored and bugs could remain in the code. It can also ma
 
 I would choose tests and Sentry. Tests help find bugs while Sentry helps detect and investigate errors.
 
+## Week 12 – Building Your First AI Agent with n8n
+
+# Exercise 1: Agent or automation?
+
+
+| # | Answer | Why |
+|---|--------|-----|
+| 1 | Automation | It runs on a fixed schedule. |
+| 2 | Agent | it decides the steps from the conversation so  bot doesn't know in advance  |
+| 3 | Automation | The steps are always the same, and the AI only does one fixed step without deciding what happens next. |
+| 4 | Automation | new issue always leads to the same single action |
+| 5 | Agent | It combines several tools and makes a decision |
+| 6 | Automation | Every form submission is handled in exactly the same way |
+
+1. Question: Scenario 3 uses AI but is still not an agent. Explain why, using the video's example of the Reddit summary.
+
+The AI functions as a fixed pipeline, akin to a function processing text into a summary without making choices about tools, order, or steps.  "Fetch posts → LLM summarises → send,"demonstrating an AI-powered workflow rather than an autonomous agent.
+
+2. Question: The video says: "Build the simplest thing that works." Why is an automation often a better choice than an agent? Think about cost, speed, and how easy it is to test.
+
+Cost: an automation makes no LLM calls, or exactly one, per run. An agent may make several calls and re-read memory and tool descriptions each time.
+
+Speed: fixed steps run straight through. An agent stops to “think” before each step.
+
+Testing: An automation consistently produces the same output for the same input, making testing simple, similar to Express routes. In contrast, an agent's response may vary each time, complicating testing and debugging.
+
